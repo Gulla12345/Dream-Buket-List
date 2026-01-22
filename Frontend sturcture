@@ -1,0 +1,49 @@
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
+
+function App() {
+    const [dreams, setDreams] = useState([]);
+    const [newDream, setNewDream] = useState({ title: '', description: '', completed: false });
+
+    useEffect(() => {
+        fetchDreams();
+    }, []);
+
+    const fetchDreams = async () => {
+        const res = await axios.get('http://localhost:5000/dreams/user123');
+        setDreams(res.data);
+    };
+
+    const addDream = async () => {
+        await axios.post('http://localhost:5000/dreams', { ...newDream, userId: 'user123' });
+        fetchDreams();
+        setNewDream({ title: '', description: '', completed: false });
+    };
+
+    const toggleComplete = async (id, completed) => {
+        await axios.put(`http://localhost:5000/dreams/${id}`, { completed: !completed });
+        fetchDreams();
+    };
+
+    return (
+        <div>
+            <h1>My Dream Bucket List</h1>
+            <input value={newDream.title} onChange={(e) => setNewDream({...newDream, title: e.target.value})} placeholder="Dream Title" />
+            <textarea value={newDream.description} onChange={(e) => setNewDream({...newDream, description: e.target.value})} placeholder="Description" />
+            <button onClick={addDream}>Add Dream</button>
+            <ul>
+                {dreams.map(dream => (
+                    <li key={dream._id}>
+                        <h3>{dream.title}</h3>
+                        <p>{dream.description}</p>
+                        <button onClick={() => toggleComplete(dream._id, dream.completed)}>
+                            {dream.completed ? 'Mark Incomplete' : 'Mark Complete'}
+                        </button>
+                    </li>
+                ))}
+            </ul>
+        </div>
+    );
+}
+
+export default App;
