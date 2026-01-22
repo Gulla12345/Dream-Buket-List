@@ -1,0 +1,39 @@
+const express = require('express');
+const mongoose = require('mongoose');
+const cors = require('cors');
+const app = express();
+app.use(cors());
+app.use(express.json());
+
+mongoose.connect('your-mongodb-connection-string', { useNewUrlParser: true });
+
+const DreamSchema = new mongoose.Schema({
+    title: String,
+    description: String,
+    completed: Boolean,
+    userId: String
+});
+const Dream = mongoose.model('Dream', DreamSchema);
+
+app.get('/dreams/:userId', async (req, res) => {
+    const dreams = await Dream.find({ userId: req.params.userId });
+    res.json(dreams);
+});
+
+app.post('/dreams', async (req, res) => {
+    const newDream = new Dream(req.body);
+    await newDream.save();
+    res.json(newDream);
+});
+
+app.put('/dreams/:id', async (req, res) => {
+    await Dream.findByIdAndUpdate(req.params.id, req.body);
+    res.json({ message: 'Updated' });
+});
+
+app.delete('/dreams/:id', async (req, res) => {
+    await Dream.findByIdAndDelete(req.params.id);
+    res.json({ message: 'Deleted' });
+});
+
+app.listen(5000, () => console.log('Server running on port 5000'));
